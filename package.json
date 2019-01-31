@@ -1,0 +1,40 @@
+{
+  "name": "cabal-desktop-mini",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "build": "bankai build && build",
+    "dev": "bankai start index.js",
+    "inspect": "bankai inspect index.js",
+    "pack": "bankai build && build --dir",
+    "start": "cross-env NODE_ENV=development electron main.js",
+    "test": "standard && test-deps",
+    "test-deps": "dependency-check . && dependency-check . --extra --no-dev -i tachyons"
+  },
+  "build": {
+    "appId": "cabal-desktop-mini",
+    "files": [
+      "**/*"
+    ],
+    "win": {
+      "target": [
+        "squirrel"
+      ]
+    }
+  },
+  "dependencies": {
+    "choo": "^6.4.2",
+    "choo-devtools": "^2.5.1",
+    "electron-collection": "^1.2.0",
+    "tachyons": "^4.11.1"
+  },
+  "devDependencies": {
+    "bankai": "^9.15.0",
+    "cross-env": "^5.2.0",
+    "electron": "^4.0.0",
+    "electron-builder": "^20.38.2",
+    "electron-builder-squirrel-windows": "^20.38.5",
+    "standard": "^12.0.1"
+  }
+}
