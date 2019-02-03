@@ -1,6 +1,9 @@
 var resolvePath = require('electron-collection/resolve-path')
 var defaultMenu = require('electron-collection/default-menu')
 var electron = require('electron')
+const { ipcMain } = require('electron')
+
+var CabalPlumbing = require('./cabal-plumbing')
 
 var BrowserWindow = electron.BrowserWindow
 var Menu = electron.Menu
@@ -10,25 +13,34 @@ var win
 
 var windowStyles = {
   width: 800,
-  height: 1000,
-  titleBarStyle: 'hidden-inset',
+  height: 800,
+  titleBarStyle: 'hidden',
   minWidth: 640,
-  minHeight: 395
+  minHeight: 395,
+  nodeIntegration: false
 }
 
-app.setName('cabal-desktop-mini')
+app.setName('Cabal Mini')
 
-var shouldQuit = app.makeSingleInstance(createInstance)
-if (shouldQuit) app.quit()
+app.requestSingleInstanceLock()
+app.on('second-instance', (event, argv, cwd) => {
+  app.quit()
+})
 
 app.on('ready', function () {
   win = new BrowserWindow(windowStyles)
+  // win.maximize()
   var root = process.env.NODE_ENV === 'development'
     ? 'https://localhost:8080'
     : 'file://' + resolvePath('./index.html')
   win.loadURL(root)
 
   win.webContents.on('did-finish-load', function () {
+    var cabalPlumbing = CabalPlumbing({
+      incoming: ipcMain,
+      outgoing: win.webContents
+    })
+
     win.show()
     var menu = Menu.buildFromTemplate(defaultMenu(app, electron.shell))
     Menu.setApplicationMenu(menu)
