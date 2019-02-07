@@ -3,75 +3,158 @@ var collect = require('collect-stream')
 var crypto = require('hypercore-crypto')
 var ram = require('random-access-memory')
 var swarm = require('cabal-core/swarm.js')
+var os = require('os')
+var fs = require('fs')
+// var path = require('path')
+var yaml = require('js-yaml')
+var mkdirp = require('mkdirp')
 
 const MAX_FEEDS = 1000
 const MAX_MESSAGES = 1000
+
+var config
+var homedir = os.homedir()
+var rootdir = homedir + `/.cabal-desktop-mini/v${Cabal.databaseVersion}`
+var rootconfig = `${rootdir}/config.yml`
+var archivesdir = `${rootdir}/archives/`
+
+// make sure the .cabal/v<databaseVersion> folder exists
+mkdirp.sync(rootdir)
+
+// create a default config in rootdir if it doesn't exist
+if (!fs.existsSync(rootconfig)) {
+  saveConfig({ cabals: [], aliases: {} })
+}
+
+// Attempt to load local or homedir config file
+try {
+  config = yaml.safeLoad(fs.readFileSync(rootconfig, 'utf8'))
+  if (!config.cabals) { config.cabals = [] }
+  if (!config.aliases) { config.aliases = {} }
+} catch (e) {
+  console.error(e)
+  process.exit(1)
+}
+
+function saveConfig (config) {
+  // make sure config is well-formatted (contains all config options)
+  if (!config.cabals) { config.cabals = [] }
+  if (!config.aliases) { config.aliases = {} }
+  let data = yaml.safeDump(config, {
+    sortKeys: true
+  })
+  fs.writeFileSync(rootconfig, data, 'utf8')
+}
 
 function CabalPlumbing (props) {
   if (!(this instanceof CabalPlumbing)) return new CabalPlumbing(props)
   var self = this
 
+  self.props = props
+
+  self.cabal = undefined
+  self.messagesListener = undefined
   self.state = {
-    key: '5c745b61f6fc050916a6a46ca392b14e5ece22cf15c5807ff737ff0695b7a0b2',
+    cabals: config.aliases,
+    key: undefined,
     channel: 'default',
     channels: [],
     user: {}
   }
-  var messagesListener
 
-  props.incoming.on('cabal-publish-nick', (event, nick) => {
-    console.log('cabal-update', nick)
-    self.publishNick(nick)
-    event.returnValue = nick
-  })
+  self.addListeners()
+}
 
-  props.incoming.on('cabal-publish-message', (event, arg) => {
-    console.log('cabal-publish-message', arg)
-    self.publishMessage(arg.message)
-    event.returnValue = arg
-  })
-
-  props.incoming.on('cabal-load-channel', (event, arg) => {
-    console.log('cabal-load-channel', arg)
-    loadChannel(arg.channel)
-    event.returnValue = arg
-  })
-
-  function updateFrontend (data) {
-    if (data) {
-      if (data.reason) {
-        console.log('update frontend: ' + data.reason)
-      }
+CabalPlumbing.prototype.addListeners = function (data) {
+  var self = this
+  self.removeListeners()
+  self.incomingEvents = [
+    {
+      type: 'cabal-get-state',
+      func: (event, arg) => self.getState()
+    },
+    {
+      type: 'cabal-publish-nick',
+      func: (event, arg) => self.publishNick(arg.nick)
+    },
+    {
+      type: 'cabal-publish-message',
+      func: (event, arg) => self.publishMessage(arg.message)
+    },
+    {
+      type: 'cabal-load-channel',
+      func: (event, arg) => self.loadChannel(arg.channel)
+    },
+    {
+      type: 'cabal-load-cabal',
+      func: (event, arg) => self.loadCabal(arg.key)
     }
-    props.outgoing.send('cabalPlumbingUpdate', self.state)
-  }
+  ]
+  self.incomingEvents.forEach(function (event) {
+    event.listener = self.props.incoming.on(event.type, function (e, arg) {
+      console.log('==>', event.type, arg)
+      event.func(e, arg)
+      e.returnValue = arg
+    })
+  })
+}
 
-  function createCabal (key) {
-    self.state.key = key.replace('cabal://', '').replace('cbl://', '').replace('dat://', '').replace(/\//g, '')
-    // var storage = args.temp ? ram : archivesdir + key
-    var storage = ram
-    return Cabal(storage, self.state.key, { maxFeeds: MAX_FEEDS })
+CabalPlumbing.prototype.removeListeners = function (data) {
+  var self = this
+  if (self.incomingEvents && self.incomingEvents.length) {
+    self.incomingEvents.forEach(function (event) {
+      if (self.props.incoming) {
+        self.props.incoming.removeListener(event.type, event.listener)
+      }
+    })
   }
+}
 
-  self.cabal = createCabal(self.state.key)
+CabalPlumbing.prototype.updateFrontend = function (data) {
+  if (data) {
+    if (data.reason) {
+      console.log('***', data.reason)
+    }
+  }
+  this.props.outgoing.send('cabalPlumbingUpdate', this.state)
+}
+
+CabalPlumbing.prototype.loadCabal = function (key, temp) {
+  var self = this
+  if (!key) {
+    key = crypto.keyPair().publicKey.toString('hex')
+  }
+  self.state.key = key.replace('cabal://', '').replace('cbl://', '').replace('dat://', '').replace(/\//g, '')
+  var storage
+  if (temp) {
+    storage = ram
+  } else {
+    storage = archivesdir + self.state.key
+    if (!Object.values(config.aliases).includes(self.state.key)) {
+      config.aliases[self.state.key] = self.state.key
+      self.state.cabals = config.aliases
+      saveConfig(config)
+    }
+  }
+  self.cabal = Cabal(storage, self.state.key, { maxFeeds: MAX_FEEDS })
   self.cabal.db.ready(function () {
     swarm(self.cabal)
 
-    updateFrontend({ reason: 'cabal ready' })
+    self.updateFrontend({ reason: 'cabal db ready' })
 
     setTimeout(() => {
       self.cabal.channels.get(function (err, channels) {
         if (err) return
         self.state.channels = channels
 
-        updateFrontend({ reason: 'get channels' })
+        self.updateFrontend({ reason: 'get channels' })
 
-        loadChannel(self.state.channel)
+        self.loadChannel(self.state.channel)
 
         self.cabal.channels.events.on('add', function (channel) {
           self.state.channels.push(channel)
           self.state.channels.sort()
-          updateFrontend({ reason: 'added channel' })
+          self.updateFrontend({ reason: 'added channel' })
         })
       })
 
@@ -87,12 +170,12 @@ function CabalPlumbing (props) {
             self.state.users[key] = Object.assign(self.state.users[key] || {}, user)
             if (self.state.user && key === self.state.user.key) self.state.user = self.state.users[key]
             if (!self.state.user) updateLocalKey()
-            updateFrontend({ reason: 'get users' })
+            self.updateFrontend({ reason: 'get users' })
           })
 
           self.cabal.topics.events.on('update', function (msg) {
             self.state.topic = msg.value.content.topic
-            updateFrontend({ reason: 'get topics' })
+            self.updateFrontend({ reason: 'get topics' })
           })
         })
 
@@ -110,13 +193,13 @@ function CabalPlumbing (props) {
               online: true
             }
           }
-          updateFrontend({ reason: 'peer added' })
+          self.updateFrontend({ reason: 'peer added' })
         })
         self.cabal.on('peer-dropped', function (key) {
           Object.keys(self.state.users).forEach(function (k) {
             if (k === key) {
               self.state.users[k].online = false
-              updateFrontend({ reason: 'peer dropped' })
+              self.updateFrontend({ reason: 'peer dropped' })
             }
           })
         })
@@ -126,7 +209,7 @@ function CabalPlumbing (props) {
             // set local key for local user
             self.state.user.key = lkey
             if (err) {
-              updateFrontend({ reason: 'get local key' })
+              self.updateFrontend({ reason: 'get local key' })
               return
             }
             // try to get more data for user
@@ -137,67 +220,72 @@ function CabalPlumbing (props) {
                 self.state.user.online = true
               }
             })
-            updateFrontend({ reason: 'get local key' })
+            self.updateFrontend({ reason: 'get local key' })
           })
         }
       })
     }, 2000)
   })
+}
 
-  var loadChannel = function (channel) {
-    if (messagesListener) {
-      self.cabal.messages.events.removeListener(self.state.channel, messagesListener)
-      messagesListener = null
+CabalPlumbing.prototype.loadChannel = function (channel) {
+  var self = this
+  if (self.messagesListener) {
+    self.cabal.messages.events.removeListener(self.state.channel, self.messagesListener)
+    self.messagesListener = null
+  }
+
+  // clear the old channel state
+  self.state.channel = channel
+  self.state.messages = []
+  self.state.topic = ''
+  self.updateFrontend({ reason: 'set fresh channel state' })
+
+  var pending = 0
+  function onMessage () {
+    if (pending > 0) {
+      pending++
+      return
     }
+    pending = 1
 
-    // clear the old channel state
-    self.state.channel = channel
-    self.state.messages = []
-    self.state.topic = ''
-    updateFrontend({ reason: 'set fresh channel state' })
+    var rs = self.cabal.messages.read(channel, { limit: MAX_MESSAGES, lt: '~' })
+    collect(rs, function (err, messages) {
+      if (err) return
 
-    var pending = 0
-    function onMessage () {
-      if (pending > 0) {
-        pending++
-        return
-      }
-      pending = 1
+      self.state.messages = []
+      // messages.reverse()
+      messages.forEach(function (msg) {
+        self.state.messages.push(self.formatMessage(msg))
+      })
 
-      var rs = self.cabal.messages.read(channel, { limit: MAX_MESSAGES, lt: '~' })
-      collect(rs, function (err, messages) {
+      self.updateFrontend({ reason: 'new messages' })
+
+      self.cabal.topics.get(channel, (err, topic) => {
         if (err) return
-
-        self.state.messages = []
-        // messages.reverse()
-        messages.forEach(function (msg) {
-          self.state.messages.push(self.formatMessage(msg))
-        })
-
-        updateFrontend({ reason: 'new messages' })
-
-        self.cabal.topics.get(channel, (err, topic) => {
-          if (err) return
-          if (topic) {
-            self.state.topic = topic
-            updateFrontend({ reason: 'get topic' })
-          }
-        })
-
-        if (pending > 1) {
-          pending = 0
-          onMessage()
-        } else {
-          pending = 0
+        if (topic) {
+          self.state.topic = topic
+          self.updateFrontend({ reason: 'get topic' })
         }
       })
-    }
 
-    self.cabal.messages.events.on(channel, onMessage)
-    messagesListener = onMessage
-
-    onMessage()
+      if (pending > 1) {
+        pending = 0
+        onMessage()
+      } else {
+        pending = 0
+      }
+    })
   }
+
+  self.cabal.messages.events.on(channel, onMessage)
+  self.messagesListener = onMessage
+
+  onMessage()
+}
+
+CabalPlumbing.prototype.getState = function () {
+  this.updateFrontend({ reason: 'get state' })
 }
 
 CabalPlumbing.prototype.publishNick = function (nick) {
@@ -216,6 +304,27 @@ CabalPlumbing.prototype.publishMessage = function (message) {
       text: message
     }
   })
+}
+
+CabalPlumbing.prototype.renameCabalAlias = function (key, alias) {
+  // config.aliases = config.aliases.map(function (alias) {
+  //   if (alias === key) {
+
+  //   }
+
+  // })
+  // if (existingAlias) {
+
+  // }
+  // config.aliases[alias] = key
+  // saveConfig(config)
+}
+
+CabalPlumbing.prototype.removeCabal = function (alias) {
+  delete config.aliases[alias]
+  delete this.state.cabals[alias]
+  this.updateFrontend({ reason: 'removed cabal' })
+  saveConfig(config)
 }
 
 module.exports = CabalPlumbing

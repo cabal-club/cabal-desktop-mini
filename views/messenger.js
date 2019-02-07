@@ -5,6 +5,10 @@ const { ipcRenderer } = window.require('electron')
 var TITLE = 'Cabal Mini'
 
 module.exports = function (state, emit) {
+  // if (!state.cabalState.key) {
+  //   document.location = '/cabals'
+  // }
+
   if (state.title !== TITLE) emit(state.events.DOMTITLECHANGE, TITLE)
   state.cabalState.key = state.cabalState.key || ''
   state.cabalState.channel = state.cabalState.channel || 'default'
@@ -13,11 +17,11 @@ module.exports = function (state, emit) {
   state.cabalState.currentUser = state.cabalState.user || { key: '' }
   state.cabalState.users = state.cabalState.users || {}
 
-  var keyShort = state.cabalState.key.substr(0, 6)
-  var currentUserName = state.cabalState.currentUser.name || state.cabalState.currentUser.key.substr(0, 6)
+  var keyShort = state.cabalState.key.substr(0, 6) || state.cabalState.keyAlias || 'CABALS'
+  var currentUserName = state.cabalState.currentUser.name || (state.cabalState.currentUser.key && state.cabalState.currentUser.key.substr(0, 6))
 
   return html`
-    <body class="sans-serif">
+    <body class="sans-serif" style="-webkit-app-region: drag">
       <nav class="ph4 pt4">
         <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="/">Cabal</a>
       </nav>
@@ -28,7 +32,8 @@ module.exports = function (state, emit) {
       </h1>
 
       <nav class="ph4 w-100 pv3 bt bb b--black-10 overflow-auto">
-        <a class="hover-dark-pink link black b f6 f5-ns dib mr3 ttu" title="${keyShort}">${keyShort}</a>
+        <a href="/" class="hover-dark-pink link black b f6 f5-ns dib mr3 ttu" title="${keyShort}">${keyShort}</a>
+        <a onclick=${onClickNewChannel} href="#" class="hover-dark-pink link gray b f6 f5-ns dib mr3 ttu" title="New Channel">+</a>
         ${state.cabalState.channels.map((channel) => {
           return html`<a class="hover-dark-pink link gray f6 f5-ns dib mr3 ttu" href="#" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
         })}
@@ -51,7 +56,7 @@ module.exports = function (state, emit) {
                 <img src="data:image/png;base64,${identicon}" class="db br2 w2"/>
               </div>
               <div class="dtc v-mid pl1">
-                <h1 class="f6 ttu tracked mt0">${name}</h1>
+                <h1 class="f6 ttu mt0">${name}</h1>
                 <p class="f6 fw5 mt0 mb0 black-80">${text}</p>
               </div>
             </article>
@@ -61,8 +66,14 @@ module.exports = function (state, emit) {
     </body>
   `
 
+  function onClickNewChannel () {
+    var input = document.getElementById('messageInput')
+    input.value = '/join '
+    input.focus()
+  }
+
   function onMessageInputKeypress (event) {
-    event.preventDefault();
+    event.preventDefault()
     if (event.keyCode === 13) {
       sendMessage()
     }
@@ -70,6 +81,13 @@ module.exports = function (state, emit) {
 
   function sendMessage () {
     var message = document.getElementById('messageInput').value
+
+    // var pattern = (/^\/(\w*)\s*(.*)/)
+    // if () {
+
+    // }
+
+
     ipcRenderer.sendSync('cabal-publish-message', {
       message,
       channel: state.cabalState.channel
@@ -77,9 +95,7 @@ module.exports = function (state, emit) {
   }
 
   function loadChannel (channel) {
-    ipcRenderer.sendSync('cabal-load-channel', {
-      channel: channel
-    })
+    ipcRenderer.sendSync('cabal-load-channel', { channel })
   }
 
   function keyToUsername (key) {

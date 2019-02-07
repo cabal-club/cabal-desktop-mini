@@ -15,7 +15,7 @@ module.exports = function (state, emit) {
   return html`
     <body class="sans-serif">
       <nav class="ph4 pt4">
-        <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black" href="/">⬅ Back</a>
+        <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black" href="/messenger">⬅ Back</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">${TITLE}</h1>
 

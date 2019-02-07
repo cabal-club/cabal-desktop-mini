@@ -12,13 +12,15 @@ var app = electron.app
 var win
 
 var windowStyles = {
-  width: 800,
+  width: 640,
   height: 800,
   titleBarStyle: 'hidden',
   minWidth: 640,
-  minHeight: 395,
+  minHeight: 480,
   nodeIntegration: false
 }
+
+var cabalPlumbing
 
 app.setName('Cabal Mini')
 
@@ -36,11 +38,6 @@ app.on('ready', function () {
   win.loadURL(root)
 
   win.webContents.on('did-finish-load', function () {
-    var cabalPlumbing = CabalPlumbing({
-      incoming: ipcMain,
-      outgoing: win.webContents
-    })
-
     win.show()
     var menu = Menu.buildFromTemplate(defaultMenu(app, electron.shell))
     Menu.setApplicationMenu(menu)
@@ -52,6 +49,15 @@ app.on('ready', function () {
   win.on('closed', function () {
     win = null
   })
+
+  if (!cabalPlumbing) {
+    cabalPlumbing = CabalPlumbing({
+      incoming: ipcMain,
+      outgoing: win.webContents
+    })
+  } else {
+    cabalPlumbing.addListeners()
+  }
 })
 
 if (process.env.NODE_ENV === 'development') {
