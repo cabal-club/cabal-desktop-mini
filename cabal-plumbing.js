@@ -79,7 +79,7 @@ CabalPlumbing.prototype.addListeners = function (data) {
     },
     {
       type: 'cabal-publish-message',
-      func: (event, arg) => self.publishMessage(arg.message)
+      func: (event, arg) => self.publishMessage(arg)
     },
     {
       type: 'cabal-load-channel',
@@ -296,12 +296,12 @@ CabalPlumbing.prototype.formatMessage = function (message) {
   return message
 }
 
-CabalPlumbing.prototype.publishMessage = function (message) {
+CabalPlumbing.prototype.publishMessage = function (arg) {
   this.cabal.publish({
-    type: 'chat/text',
+    type: arg.type || 'chat/text',
     content: {
       channel: this.state.channel,
-      text: message
+      text: arg.text
     }
   })
 }

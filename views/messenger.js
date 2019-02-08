@@ -10,6 +10,7 @@ module.exports = function (state, emit) {
   // }
 
   if (state.title !== TITLE) emit(state.events.DOMTITLECHANGE, TITLE)
+  state.messageHistory = state.messageHistory || []
   state.cabalState.key = state.cabalState.key || ''
   state.cabalState.channel = state.cabalState.channel || 'default'
   state.cabalState.channels = state.cabalState.channels || []
@@ -75,27 +76,126 @@ module.exports = function (state, emit) {
   function onMessageInputKeypress (event) {
     event.preventDefault()
     if (event.keyCode === 13) {
-      sendMessage()
+      sendMessage({})
     }
   }
 
-  function sendMessage () {
-    var message = document.getElementById('messageInput').value
+  function buildCommands () {
+    var commands = {
+      nick: {
+        help: () => 'change your display name',
+        call: (arg) => {
+          if (arg === '') return
+          publishNick(arg)
+        }
+      },
+      emote: {
+        help: () => 'write an old-school text emote',
+        call: (arg) => {
+          sendMessage({
+            text: arg,
+            type: 'chat/emote'
+          })
+        }
+      },
+      join: {
+        help: () => 'join a new channel',
+        call: (arg) => {
+          if (arg === '') arg = 'default'
+          loadChannel(arg)
+        }
+      },
+      quit: {
+        help: () => 'exit the cabal process',
+        call: (arg) => {
+          // TODO
+          // process.exit(0)
+        }
+      },
+      topic: {
+        help: () => 'set the topic/description/`message of the day` for a channel',
+        call: (arg) => {
+          // TODO
+          // self.cabal.publishChannelTopic(self.channel, arg)
+        }
+      },
+      whoami: {
+        help: () => 'display your local user key',
+        call: (arg) => {
+          // TODO
+          // self.view.writeLine.bind(self.view)('Local user key: ' + self.cabal.client.user.key)
+        }
+      }
+    }
 
-    // var pattern = (/^\/(\w*)\s*(.*)/)
-    // if () {
+    // add aliases to commands
+    function alias (command, alias) {
+      commands[alias] = {
+        help: commands[command].help,
+        call: commands[command].call
+      }
+    }
+    alias('emote', 'me')
+    alias('join', 'j')
+    alias('nick', 'n')
+    alias('topic', 'motd')
+    alias('whoami', 'key')
+    alias('quit', 'exit')
 
+    // TODO
+    // add in experimental commands
+    // if (self.view.isExperimental) {
+    //   self.commands['add'] = {
+    //     help: () => 'add a cabal',
+    //     call: (arg) => {
+    //       if (arg === '') {
+    //         self.view.writeLine('* Usage example: /add cabalkey')
+    //         return
+    //       }
+    //       self.channel = arg
+    //       self.view.addCabal(arg)
+    //     }
+    //   }
+    //   self.alias('add', 'cabal')
     // }
+    return commands
+  }
 
+  function sendMessage (props) {
+    var text = props.text || document.getElementById('messageInput').value
+    text = text.trim()
+    state.messageHistory.push(text)
+    if (state.messageHistory.length > 1000) state.messageHistory.shift()
 
-    ipcRenderer.sendSync('cabal-publish-message', {
-      message,
-      channel: state.cabalState.channel
-    })
+    var commandPattern = (/^\/(\w*)\s*(.*)/)
+    var match = commandPattern.exec(text)
+    var cmd = match ? match[1] : ''
+    var arg = match ? match[2] : ''
+    arg = arg.trim()
+
+    var commands = buildCommands()
+    if (cmd in commands) {
+      commands[cmd].call(arg)
+    } else if (cmd) {
+      console.log(`${cmd} is not a command, type /help for commands`)
+    } else {
+      text = text.trim()
+      if (text !== '') {
+        ipcRenderer.sendSync('cabal-publish-message', {
+          channel: state.cabalState.channel,
+          text,
+          type: props.type
+        })
+      }
+    }
   }
 
   function loadChannel (channel) {
     ipcRenderer.sendSync('cabal-load-channel', { channel })
+  }
+
+  function publishNick (nick) {
+    ipcRenderer.sendSync('cabal-publish-nick', { nick })
   }
 
   function keyToUsername (key) {
