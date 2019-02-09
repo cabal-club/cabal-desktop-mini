@@ -19,7 +19,11 @@ module.exports = function (state, emit) {
       <nav class="ph4 pt4">
         <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="/">Cabal</a>
       </nav>
-      <h1 class="ph4 f3 f2-m f1-l">${TITLE}</h1>
+      <h1 class="ph4 f3 f2-m f1-l">
+        ${TITLE}
+        <a onclick=${createCabal} href="#" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="Create a new Cabal">NEW</a>
+        <a href="/join" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Join a Cabal">JOIN</a>
+      </h1>
 
       <div class="pa4">
         ${Object.entries(state.cabalState.cabals).map((cabal) => {
@@ -36,34 +40,22 @@ module.exports = function (state, emit) {
             background: [255, 255, 255, 255]
           }).toString()
           return html`
-            <a class="dt w-100 b--black-05 pb3 mt2" onclick=${function () { loadCabal(key) }}">
-              <div href="#" class="dtc v-mid" style="width: 2.5rem">
+            <a style="cursor: pointer" class="flex w-100 b--black-05 pb3 mt2" onclick=${function () { loadCabal(key) }}">
+              <div class=" v-mid" style="width: 2.5rem">
                 <img src="data:image/png;base64,${identicon}" class="db br2 w2"/>
               </div>
-              <div href="#" class="dtc v-mid pl1">
-                <h1 class="f6 ttu tracked mt0">${alias}</h1>
+              <div class="dtc v-mid pl1">
+                <h1 class="f4 ttu tracked mt1 link black hover-dark-pink">${alias}</h1>
               </div>
             </a>
           `
         })}
-        <div>
-          <label for="key" class="f6 b db mb2">Join a Cabal</label>
-          <input placeholder="cabal://" id="joinKeyInput" class="input-reset ba b--black-20 pa2 mb2 db w-100" type="text" aria-describedby="name-desc">
-          <small id="name-desc" class="f6 black-60 db mb2"></small>
-          <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black" href="#" onclick=${joinCabal}>Join</a>
-        </div>
-        <a class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="#" onclick=${createCabal}>Create a New Cabal</a>
       </div>
     </body>
   `
 
   function createCabal () {
     loadCabal()
-  }
-
-  function joinCabal () {
-    var key = document.getElementById('joinKeyInput').value
-    loadCabal(key)
   }
 
   function loadCabal (key) {

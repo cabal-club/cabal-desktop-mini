@@ -18,30 +18,30 @@ module.exports = function (state, emit) {
   state.cabalState.currentUser = state.cabalState.user || { key: '' }
   state.cabalState.users = state.cabalState.users || {}
 
-  var keyShort = state.cabalState.key.substr(0, 6) || state.cabalState.keyAlias || 'CABALS'
+  var keyShort = state.cabalState.keyAlias || state.cabalState.key.substr(0, 6) || 'CABALS'
   var currentUserName = state.cabalState.currentUser.name || (state.cabalState.currentUser.key && state.cabalState.currentUser.key.substr(0, 6))
 
+  scrollToBottom()
+
   return html`
-    <body class="sans-serif" style="-webkit-app-region: drag">
+    <body class="sans-serif flex flex-column" style="height: 100%; overflow: hidden; -webkit-app-region: drag">
       <nav class="ph4 pt4">
         <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="/">Cabal</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">
-        ${TITLE}
-        <a href="/settings" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
+        <a href="/" class="hover-dark-pink link black" title="Cabal">${TITLE}</a>
+        <a href="/" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="${keyShort}">${keyShort}</a>
+        <a href="/settings" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
         <a href="/peers" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Peers">PEERS</a>
       </h1>
 
       <nav class="ph4 w-100 pv3 bt bb b--black-10 overflow-auto">
-        <a href="/" class="hover-dark-pink link black b f6 f5-ns dib mr3 ttu" title="${keyShort}">${keyShort}</a>
-        <a onclick=${onClickNewChannel} href="#" class="hover-dark-pink link gray b f6 f5-ns dib mr3 ttu" title="New Channel">+</a>
         ${state.cabalState.channels.map((channel) => {
-          return html`<a class="hover-dark-pink link gray f6 f5-ns dib mr3 ttu" href="#" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
+          return html`<a class="hover-dark-pink link ${channel === state.cabalState.channel ? 'black' : 'gray'} f6 f5-ns dib mr3 ttu" href="#" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
         })}
+        <a onclick=${onClickNewChannel} href="#" class="hover-dark-pink link gray b f6 f5-ns dib mr3 ttu" title="New Channel">+</a>
       </nav>
-
-      <article class="pa4">
-        <input placeholder="Message #${state.cabalState.channel}" id="messageInput" onkeyup=${onMessageInputKeypress} class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text" aria-describedby="name-desc">
+      <article class="pa4 flex-auto" style="overflow: scroll">
         ${state.cabalState.messages.map((message) => {
           var name = keyToUsername(message.key)
           var text = message.value.content.text
@@ -52,7 +52,7 @@ module.exports = function (state, emit) {
             background: [255, 255, 255, 255]
           }).toString()
           return html`
-            <article class="dt w-100 b--black-05 pb3 mt2">
+            <article id="messages" class="dt w-100 b--black-05 pb3 mt2">
               <div class="dtc v-top" style="width: 2.5rem">
                 <img src="data:image/png;base64,${identicon}" class="db br2 w2"/>
               </div>
@@ -64,8 +64,19 @@ module.exports = function (state, emit) {
           `
         })}
       </article>
+      <div class="flex-auto ph4" style="height: 20rem">
+        <input placeholder="Message #${state.cabalState.channel}" id="messageInput" onkeyup=${onMessageInputKeypress} class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text" aria-describedby="name-desc">
+      </div>
     </body>
   `
+
+  function scrollToBottom (force) {
+    // if (!force && !this.shouldAutoScroll) return
+    var messagesDiv = document.getElementById('messages')
+    if (messagesDiv) {
+      messagesDiv.scrollTop = messagesDiv.scrollHeight
+    }
+  }
 
   function onClickNewChannel () {
     var input = document.getElementById('messageInput')
@@ -125,6 +136,18 @@ module.exports = function (state, emit) {
           // TODO
           // self.view.writeLine.bind(self.view)('Local user key: ' + self.cabal.client.user.key)
         }
+      },
+      alias: {
+        help: () => 'set alias for the cabal',
+        call: (arg) => {
+          renameCabalAlias(arg)
+        }
+      },
+      add: {
+        help: () => 'add a cabal',
+        call: (arg) => {
+          addAnotherCabal(arg)
+        }
       }
     }
 
@@ -142,22 +165,6 @@ module.exports = function (state, emit) {
     alias('whoami', 'key')
     alias('quit', 'exit')
 
-    // TODO
-    // add in experimental commands
-    // if (self.view.isExperimental) {
-    //   self.commands['add'] = {
-    //     help: () => 'add a cabal',
-    //     call: (arg) => {
-    //       if (arg === '') {
-    //         self.view.writeLine('* Usage example: /add cabalkey')
-    //         return
-    //       }
-    //       self.channel = arg
-    //       self.view.addCabal(arg)
-    //     }
-    //   }
-    //   self.alias('add', 'cabal')
-    // }
     return commands
   }
 
@@ -196,6 +203,19 @@ module.exports = function (state, emit) {
 
   function publishNick (nick) {
     ipcRenderer.sendSync('cabal-publish-nick', { nick })
+  }
+
+  function renameCabalAlias (alias) {
+    ipcRenderer.sendSync('cabal-rename-cabal-alias', {
+      alias,
+      key: state.cabalState.key
+    })
+  }
+
+  function addAnotherCabal (key) {
+    ipcRenderer.sendSync('cabal-load-cabal', {
+      key
+    })
   }
 
   function keyToUsername (key) {

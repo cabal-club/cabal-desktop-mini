@@ -70,6 +70,10 @@ CabalPlumbing.prototype.addListeners = function (data) {
   self.removeListeners()
   self.incomingEvents = [
     {
+      type: 'cabal-rename-cabal-alias',
+      func: (event, arg) => self.renameCabalAlias(arg.key, arg.alias)
+    },
+    {
       type: 'cabal-get-state',
       func: (event, arg) => self.getState()
     },
@@ -116,6 +120,7 @@ CabalPlumbing.prototype.updateFrontend = function (data) {
       console.log('***', data.reason)
     }
   }
+  this.state.keyAlias = this.getKeyAlias(this.state.key)
   this.props.outgoing.send('cabalPlumbingUpdate', this.state)
 }
 
@@ -136,6 +141,7 @@ CabalPlumbing.prototype.loadCabal = function (key, temp) {
       saveConfig(config)
     }
   }
+  self.state.keyAlias = self.getKeyAlias(self.state.key)
   self.cabal = Cabal(storage, self.state.key, { maxFeeds: MAX_FEEDS })
   self.cabal.db.ready(function () {
     swarm(self.cabal)
@@ -254,7 +260,7 @@ CabalPlumbing.prototype.loadChannel = function (channel) {
       if (err) return
 
       self.state.messages = []
-      // messages.reverse()
+      messages.reverse()
       messages.forEach(function (msg) {
         self.state.messages.push(self.formatMessage(msg))
       })
@@ -306,18 +312,26 @@ CabalPlumbing.prototype.publishMessage = function (arg) {
   })
 }
 
+CabalPlumbing.prototype.getKeyAlias = function (key) {
+  var index = Object.values(config.aliases).indexOf(key)
+  var alias = Object.keys(config.aliases)[index]
+  if (alias && alias === key) {
+    alias = alias.substr(0, 6)
+  }
+  return alias
+}
+
 CabalPlumbing.prototype.renameCabalAlias = function (key, alias) {
-  // config.aliases = config.aliases.map(function (alias) {
-  //   if (alias === key) {
-
-  //   }
-
-  // })
-  // if (existingAlias) {
-
-  // }
-  // config.aliases[alias] = key
-  // saveConfig(config)
+  var aliases = Object.keys(config.aliases)
+  var keys = Object.values(config.aliases)
+  aliases[keys.indexOf(key)] = alias
+  config.aliases = {}
+  aliases.forEach(function (alias, index) {
+    config.aliases[alias] = keys[index]
+  })
+  this.state.cabals = config.aliases
+  this.updateFrontend({ reason: 'renamed cabal' })
+  saveConfig(config)
 }
 
 CabalPlumbing.prototype.removeCabal = function (alias) {
