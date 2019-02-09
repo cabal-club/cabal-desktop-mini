@@ -70,6 +70,10 @@ CabalPlumbing.prototype.addListeners = function (data) {
   self.removeListeners()
   self.incomingEvents = [
     {
+      type: 'cabal-remove-cabal',
+      func: (event, arg) => self.removeCabal(arg.key)
+    },
+    {
       type: 'cabal-rename-cabal-alias',
       func: (event, arg) => self.renameCabalAlias(arg.key, arg.alias)
     },
@@ -120,8 +124,12 @@ CabalPlumbing.prototype.updateFrontend = function (data) {
       console.log('***', data.reason)
     }
   }
-  this.state.keyAlias = this.getKeyAlias(this.state.key)
-  this.props.outgoing.send('cabalPlumbingUpdate', this.state)
+  this.state.keyAlias = this.getAliasByKey(this.state.key)
+  if (data.event && data.event.type) {
+    this.props.outgoing.send(data.extraEvent.type, data.extraEvent.data)
+  } else {
+    this.props.outgoing.send('cabal-state-update', this.state)
+  }
 }
 
 CabalPlumbing.prototype.loadCabal = function (key, temp) {
@@ -141,7 +149,7 @@ CabalPlumbing.prototype.loadCabal = function (key, temp) {
       saveConfig(config)
     }
   }
-  self.state.keyAlias = self.getKeyAlias(self.state.key)
+  self.state.keyAlias = self.getAliasByKey(self.state.key)
   self.cabal = Cabal(storage, self.state.key, { maxFeeds: MAX_FEEDS })
   self.cabal.db.ready(function () {
     swarm(self.cabal)
@@ -177,6 +185,12 @@ CabalPlumbing.prototype.loadCabal = function (key, temp) {
             if (self.state.user && key === self.state.user.key) self.state.user = self.state.users[key]
             if (!self.state.user) updateLocalKey()
             self.updateFrontend({ reason: 'get users' })
+            self.updateFrontend({
+              type: 'cabal-users-update',
+              data: {
+                user: self.state.users[key]
+              }
+            })
           })
 
           self.cabal.topics.events.on('update', function (msg) {
@@ -266,6 +280,12 @@ CabalPlumbing.prototype.loadChannel = function (channel) {
       })
 
       self.updateFrontend({ reason: 'new messages' })
+      self.updateFrontend({
+        type: 'cabal-messages-update',
+        data: {
+          messages
+        }
+      })
 
       self.cabal.topics.get(channel, (err, topic) => {
         if (err) return
@@ -312,13 +332,17 @@ CabalPlumbing.prototype.publishMessage = function (arg) {
   })
 }
 
-CabalPlumbing.prototype.getKeyAlias = function (key) {
+CabalPlumbing.prototype.getAliasByKey = function (key, dontTruncate) {
   var index = Object.values(config.aliases).indexOf(key)
   var alias = Object.keys(config.aliases)[index]
-  if (alias && alias === key) {
+  if (alias && !dontTruncate && alias === key) {
     alias = alias.substr(0, 6)
   }
   return alias
+}
+
+CabalPlumbing.prototype.getKeyByAlias = function (alias) {
+  return config.aliases[alias]
 }
 
 CabalPlumbing.prototype.renameCabalAlias = function (key, alias) {
@@ -334,7 +358,8 @@ CabalPlumbing.prototype.renameCabalAlias = function (key, alias) {
   saveConfig(config)
 }
 
-CabalPlumbing.prototype.removeCabal = function (alias) {
+CabalPlumbing.prototype.removeCabal = function (key) {
+  var alias = this.getAliasByKey(key, true)
   delete config.aliases[alias]
   delete this.state.cabals[alias]
   this.updateFrontend({ reason: 'removed cabal' })

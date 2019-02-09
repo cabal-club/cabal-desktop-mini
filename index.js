@@ -7,9 +7,14 @@ css('tachyons')
 var cabalPorcelain = function (state, emitter) {
   state.cabalState = {}
 
-  ipcRenderer.on('cabalPlumbingUpdate', (event, cabalState) => {
+  ipcRenderer.on('cabal-state-update', (event, cabalState) => {
     console.log({ cabalState })
     state.cabalState = cabalState
+    emitter.emit('render')
+  })
+  ipcRenderer.on('cabal-messages-update', (event, data) => {
+    console.log({ data })
+    // state.cabalState = cabalState
     emitter.emit('render')
   })
 }

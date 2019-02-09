@@ -13,12 +13,10 @@ module.exports = function (state, emit) {
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">${TITLE}</h1>
       <form class="pa4 black-80">
-        <div class="measure">
-          <label for="key" class="f6 b db mb2">Cabal Key</label>
-          <input placeholder="cabal://" id="joinKeyInput" class="input-reset ba b--black-20 pa2 mb2 db w-100" type="text" aria-describedby="key-desc">
-          <small id="key-desc" class="f6 black-60 db mb2"></small>
-          <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black" href="#" onclick=${joinCabal}>Join</a>
-        </div>
+        <label for="key" class="f6 b db mb2">Cabal Key</label>
+        <input placeholder="cabal://" id="joinKeyInput" class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text" aria-describedby="key-desc">
+        <small id="key-desc" class="f6 black-60 db mb2"></small>
+        <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black" href="#" onclick=${joinCabal}>Join</a>
       </form>
     </body>
   `

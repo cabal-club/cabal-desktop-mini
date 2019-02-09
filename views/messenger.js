@@ -35,7 +35,7 @@ module.exports = function (state, emit) {
         <a href="/peers" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Peers">PEERS</a>
       </h1>
 
-      <nav class="ph4 w-100 pv3 bt bb b--black-10 overflow-auto">
+      <nav class="ph4 w-100 pv3 bt bb b--black-10">
         ${state.cabalState.channels.map((channel) => {
           return html`<a class="hover-dark-pink link ${channel === state.cabalState.channel ? 'black' : 'gray'} f6 f5-ns dib mr3 ttu" href="#" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
         })}
@@ -57,15 +57,15 @@ module.exports = function (state, emit) {
                 <img src="data:image/png;base64,${identicon}" class="db br2 w2"/>
               </div>
               <div class="dtc v-mid pl1">
-                <h1 class="f6 ttu mt0">${name}</h1>
-                <p class="f6 fw5 mt0 mb0 black-80">${text}</p>
+                <h1 class="f7 fw5 ttu mb1 mt0">${name}</h1>
+                <p class="f5 fw5 mt0 mb0 black-70">${text}</p>
               </div>
             </article>
           `
         })}
       </article>
       <div class="flex-auto ph4" style="height: 20rem">
-        <input placeholder="Message #${state.cabalState.channel}" id="messageInput" onkeyup=${onMessageInputKeypress} class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text" aria-describedby="name-desc">
+        <input placeholder="Message #${state.cabalState.channel}" id="messageInput" onkeyup=${onMessageInputKeypress} class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text">
       </div>
     </body>
   `

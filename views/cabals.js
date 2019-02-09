@@ -40,14 +40,17 @@ module.exports = function (state, emit) {
             background: [255, 255, 255, 255]
           }).toString()
           return html`
-            <a style="cursor: pointer" class="flex w-100 b--black-05 pb3 mt2" onclick=${function () { loadCabal(key) }}">
-              <div class=" v-mid" style="width: 2.5rem">
+            <div class="flex b--black-05 pb3 mt2">
+              <div class="pointer v-mid" style="width: 2.5rem" onclick=${() => loadCabal(key)}>
                 <img src="data:image/png;base64,${identicon}" class="db br2 w2"/>
               </div>
-              <div class="dtc v-mid pl1">
-                <h1 class="f4 ttu tracked mt1 link black hover-dark-pink">${alias}</h1>
+              <div class="flex-auto v-mid pl1 pointer" onclick=${() => loadCabal(key)}>
+                <h1 class="f3 ttu tracked mt1 link black hover-dark-pink">${alias}</h1>
               </div>
-            </a>
+              <div onclick=${() => removeCabal(key)} class="f6 bg-white hover-dark-pink pointer pa1 black-10">
+                Remove
+              </div>
+            </div>
           `
         })}
       </div>
@@ -61,5 +64,9 @@ module.exports = function (state, emit) {
   function loadCabal (key) {
     ipcRenderer.sendSync('cabal-load-cabal', { key })
     window.location = '/messenger'
+  }
+
+  function removeCabal (key) {
+    ipcRenderer.sendSync('cabal-remove-cabal', { key })
   }
 }
