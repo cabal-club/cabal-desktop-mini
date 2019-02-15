@@ -1,5 +1,5 @@
 var choo = require('choo')
-var css = require('sheetify')
+var css = require('sheetify/transform')
 var { ipcRenderer } = window.require('electron')
 
 css('tachyons')

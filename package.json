@@ -5,12 +5,13 @@
   "private": true,
   "main": "main.js",
   "scripts": {
-    "dist": "electron-builder",
+    "OLDdist": "electron-builder",
     "postinstall": "electron-builder install-app-deps",
     "build": "bankai build && build",
-    "dev": "bankai start index.js",
+    "OLDdev": "bankai start index.js",
+    "dev": "electron-webpack dev",
     "inspect": "bankai inspect index.js",
-    "pack": "bankai build && build --dir",
+    "OLDpack": "bankai build && build --dir",
     "start": "cross-env NODE_ENV=development electron main.js",
     "test": "standard && test-deps",
     "test-deps": "dependency-check . && dependency-check . --extra --no-dev -i tachyons"
@@ -81,6 +82,7 @@
     "js-yaml": "^3.12.1",
     "mkdirp": "^0.5.1",
     "random-access-memory": "^3.1.1",
+    "source-map-support": "^0.5.10",
     "tachyons": "^4.11.1"
   },
   "devDependencies": {
@@ -89,6 +91,8 @@
     "electron": "^4.0.5",
     "electron-builder": "^20.38.5",
     "electron-builder-squirrel-windows": "^20.38.5",
-    "standard": "^12.0.1"
+    "electron-webpack": "^2.6.2",
+    "standard": "^12.0.1",
+    "webpack": "^4.29.3"
   }
 }

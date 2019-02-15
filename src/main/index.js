@@ -1,15 +1,17 @@
-var resolvePath = require('electron-collection/resolve-path')
 var defaultMenu = require('electron-collection/default-menu')
 var electron = require('electron')
+const path = require('path')
 const { ipcMain } = require('electron')
+const { format } = require('url')
 
 var CabalPlumbing = require('./cabal-plumbing')
 
+const isDevelopment = process.env.NODE_ENV !== 'production'
 var BrowserWindow = electron.BrowserWindow
 var Menu = electron.Menu
 var app = electron.app
 
-var win
+var window
 
 var windowStyles = {
   width: 640,
@@ -30,30 +32,43 @@ app.on('second-instance', (event, argv, cwd) => {
 })
 
 app.on('ready', function () {
-  win = new BrowserWindow(windowStyles)
-  // win.maximize()
-  var root = process.env.NODE_ENV === 'development'
-    ? 'https://localhost:8080'
-    : 'file://' + resolvePath('./index.html')
-  win.loadURL(root)
+  window = new BrowserWindow(windowStyles)
 
-  win.webContents.on('did-finish-load', function () {
-    win.show()
+  if (isDevelopment) {
+    window.webContents.openDevTools()
+  }
+
+  if (isDevelopment) {
+    window.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`)
+  } else {
+    window.loadURL(format({
+      pathname: path.join(__dirname, 'index.html'),
+      protocol: 'file',
+      slashes: true
+    }))
+  }
+
+  window.webContents.on('did-finish-load', function () {
+    window.show()
     var menu = Menu.buildFromTemplate(defaultMenu(app, electron.shell))
     Menu.setApplicationMenu(menu)
-    if (process.env.NODE_ENV === 'development') {
-      win.webContents.openDevTools({ mode: 'detach' })
-    }
   })
 
-  win.on('closed', function () {
+  window.on('closed', function () {
     win = null
+  })
+
+  window.webContents.on('devtools-opened', () => {
+    window.focus()
+    setImmediate(() => {
+      window.focus()
+    })
   })
 
   if (!cabalPlumbing) {
     cabalPlumbing = CabalPlumbing({
       incoming: ipcMain,
-      outgoing: win.webContents
+      outgoing: window.webContents
     })
   } else {
     cabalPlumbing.addListeners()
@@ -77,7 +92,7 @@ app.on('window-all-closed', function () {
 
 function createInstance () {
   if (win) {
-    if (win.isMinimized()) win.restore()
-    win.focus()
+    if (window.isMinimized()) window.restore()
+    window.focus()
   }
 }
