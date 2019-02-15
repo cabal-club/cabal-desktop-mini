@@ -1,9 +1,12 @@
 {
   "name": "cabal-desktop-mini",
-  "version": "1.0.0",
+  "version": "1.0.1",
+  "description": "a minimal Cabal p2p offline-first desktop application",
   "private": true,
   "main": "main.js",
   "scripts": {
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps",
     "build": "bankai build && build",
     "dev": "bankai start index.js",
     "inspect": "bankai inspect index.js",
@@ -12,20 +15,62 @@
     "test": "standard && test-deps",
     "test-deps": "dependency-check . && dependency-check . --extra --no-dev -i tachyons"
   },
+  "productName": "Cabal Mini",
+  "repository": "nikolaiwarner/cabal-desktop-mini",
+  "author": "Cabal Club",
+  "license": "GPL-3.0",
   "build": {
-    "appId": "cabal-desktop-mini",
+    "appId": "club.cabal.mini",
     "files": [
-      "**/*"
+      "**/*",
+      "bundle.js",
+      "bundle.css",
+      {
+        "from": "dist",
+        "to": ".",
+        "filter": [
+          "**/*",
+          "!mac/**/*"
+        ]
+      }
     ],
+    "protocols": [
+      {
+        "name": "cabal",
+        "schemes": [
+          "cabal"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "dmg": {
+      "artifactName": "cabal-desktop-mini-${version}-mac.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "snap"
+      ],
+      "category": "Network"
+    },
+    "appImage": {
+      "artifactName": "cabal-desktop-mini-${version}-linux-${arch}.${ext}"
+    },
     "win": {
+      "publisherName": "cabal",
       "target": [
         "squirrel"
       ]
+    },
+    "nsis": {
+      "artifactName": "cabal-desktop-mini-${version}-windows.${ext}"
     }
   },
   "dependencies": {
     "cabal-core": "^4.0.0",
-    "choo": "^6.4.2",
+    "choo": "^6.13.1",
     "choo-devtools": "^2.5.1",
     "collect-stream": "^1.2.1",
     "dat-encoding": "^5.0.1",
@@ -41,8 +86,8 @@
   "devDependencies": {
     "bankai": "^9.15.0",
     "cross-env": "^5.2.0",
-    "electron": "^4.0.3",
-    "electron-builder": "^20.38.2",
+    "electron": "^4.0.5",
+    "electron-builder": "^20.38.5",
     "electron-builder-squirrel-windows": "^20.38.5",
     "standard": "^12.0.1"
   }
