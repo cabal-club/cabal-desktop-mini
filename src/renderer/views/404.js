@@ -1,6 +1,6 @@
 var html = require('choo/html')
 
-var TITLE = '🚂🚋🚋 - route not found'
+var TITLE = 'Cabal Mini'
 
 module.exports = view
 

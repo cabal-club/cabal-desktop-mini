@@ -24,22 +24,22 @@ module.exports = function (state, emit) {
   scrollToBottom()
 
   return html`
-    <body class="sans-serif flex flex-column" style="height: 100%; overflow: hidden; -webkit-app-region: drag">
+    <body class="sans-serif flex flex-column">
       <nav class="ph4 pt4">
         <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="/">Cabal</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">
         <a href="/" class="hover-dark-pink link black" title="Cabal">${TITLE}</a>
         <a href="/" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="${keyShort}">${keyShort}</a>
-        <a href="/settings" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
+        <a href="/settings" class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mr3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
         <a href="/peers" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Peers">PEERS</a>
       </h1>
 
       <nav class="ph4 w-100 pv3 bt bb b--black-10">
         ${state.cabalState.channels.map((channel) => {
-          return html`<a class="hover-dark-pink link ${channel === state.cabalState.channel ? 'black' : 'gray'} f6 f5-ns dib mr3 ttu" href="#" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
+          return html`<a class="hover-dark-pink pointer link ${channel === state.cabalState.channel ? 'black' : 'gray'} b f6 f5-ns dib mr3 ttu" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
         })}
-        <a onclick=${onClickNewChannel} href="#" class="hover-dark-pink link gray b f6 f5-ns dib mr3 ttu" title="New Channel">+</a>
+        <a onclick=${onClickNewChannel} class="hover-dark-pink pointer link gray b f6 f5-ns dib mr3 ttu" title="New Channel">+</a>
       </nav>
       <article class="pa4 flex-auto" style="overflow: scroll">
         ${state.cabalState.messages.map((message) => {
@@ -64,7 +64,7 @@ module.exports = function (state, emit) {
           `
         })}
       </article>
-      <div class="flex-auto ph4" style="height: 20rem">
+      <div class="ph4">
         <input placeholder="Message #${state.cabalState.channel}" id="messageInput" onkeyup=${onMessageInputKeypress} class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text">
       </div>
     </body>

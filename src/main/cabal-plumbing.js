@@ -5,7 +5,6 @@ var ram = require('random-access-memory')
 var swarm = require('cabal-core/swarm.js')
 var os = require('os')
 var fs = require('fs')
-// var path = require('path')
 var yaml = require('js-yaml')
 var mkdirp = require('mkdirp')
 

@@ -1,6 +1,6 @@
 var html = require('choo/html')
 var Identicon = require('identicon.js')
-const { ipcRenderer } = window.require('electron')
+const { clipboard, ipcRenderer } = window.require('electron')
 
 var TITLE = 'Cabal Mini'
 
@@ -47,6 +47,9 @@ module.exports = function (state, emit) {
               <div class="flex-auto v-mid pl1 pointer" onclick=${() => loadCabal(key)}>
                 <h1 class="f3 ttu tracked mt1 link black hover-dark-pink">${alias}</h1>
               </div>
+              <div onclick=${() => sendKeyToClipboard(key)} class="f6 bg-white hover-dark-pink pointer pa1 black-20">
+                Share Cabal
+              </div>
               <div onclick=${() => removeCabal(key)} class="f6 bg-white hover-dark-pink pointer pa1 black-10">
                 Remove
               </div>
@@ -63,10 +66,16 @@ module.exports = function (state, emit) {
 
   function loadCabal (key) {
     ipcRenderer.sendSync('cabal-load-cabal', { key })
-    window.location = '/messenger'
+    window.location.hash = 'messenger'
   }
 
   function removeCabal (key) {
     ipcRenderer.sendSync('cabal-remove-cabal', { key })
+  }
+
+  function sendKeyToClipboard (key) {
+    key = 'cabal://' + key
+    clipboard.writeText(key)
+    window.alert(key + '\n\nThe Cabal key was copied to your clipboard! Now give it to people you want to join your Cabal. Only people with the link can join.')
   }
 }

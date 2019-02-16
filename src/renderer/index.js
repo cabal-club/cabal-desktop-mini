@@ -1,6 +1,7 @@
 var choo = require('choo')
 var { ipcRenderer } = window.require('electron')
 var Tachyons = require('tachyons/css/tachyons.min.css')
+var Styles = require('./styles/style.css')
 
 var cabalPorcelain = function (state, emitter) {
   state.cabalState = {}

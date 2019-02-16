@@ -28,6 +28,6 @@ module.exports = function (state, emit) {
 
   function loadCabal (key) {
     ipcRenderer.sendSync('cabal-load-cabal', { key })
-    window.location = '/messenger'
+    window.location.hash = 'messenger'
   }
 }

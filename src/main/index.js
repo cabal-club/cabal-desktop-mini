@@ -1,15 +1,11 @@
 var defaultMenu = require('electron-collection/default-menu')
-var electron = require('electron')
 const path = require('path')
-const { ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron')
 const { format } = require('url')
 
 var CabalPlumbing = require('./cabal-plumbing')
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
-var BrowserWindow = electron.BrowserWindow
-var Menu = electron.Menu
-var app = electron.app
 
 var window
 
@@ -50,12 +46,12 @@ app.on('ready', function () {
 
   window.webContents.on('did-finish-load', function () {
     window.show()
-    var menu = Menu.buildFromTemplate(defaultMenu(app, electron.shell))
+    var menu = Menu.buildFromTemplate(defaultMenu(app, shell))
     Menu.setApplicationMenu(menu)
   })
 
   window.on('closed', function () {
-    win = null
+    window = null
   })
 
   window.webContents.on('devtools-opened', () => {
@@ -75,24 +71,6 @@ app.on('ready', function () {
   }
 })
 
-if (process.env.NODE_ENV === 'development') {
-  app.on('certificate-error', function (event, webContents, url, err, cert, cb) {
-    if (url.match('https://localhost')) {
-      event.preventDefault()
-      cb(true)
-    } else {
-      cb(false)
-    }
-  })
-}
-
 app.on('window-all-closed', function () {
   app.quit()
 })
-
-function createInstance () {
-  if (win) {
-    if (window.isMinimized()) window.restore()
-    window.focus()
-  }
-}
