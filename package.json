@@ -5,16 +5,12 @@
   "private": true,
   "main": "main.js",
   "scripts": {
-    "OLDdist": "electron-builder",
-    "postinstall": "electron-builder install-app-deps",
-    "build": "bankai build && build",
-    "OLDdev": "bankai start index.js",
     "dev": "electron-webpack dev",
-    "inspect": "bankai inspect index.js",
-    "OLDpack": "bankai build && build --dir",
-    "start": "cross-env NODE_ENV=development electron main.js",
-    "test": "standard && test-deps",
-    "test-deps": "dependency-check . && dependency-check . --extra --no-dev -i tachyons"
+    "compile": "electron-webpack",
+    "dist": "npm run compile && electron-builder",
+    "dist:dir": "npm run dist --dir -c.compression=store -c.mac.identity=null",
+    "postinstall": "electron-builder install-app-deps",
+    "test": "standard && test-deps"
   },
   "productName": "Cabal Mini",
   "repository": "nikolaiwarner/cabal-desktop-mini",
@@ -22,19 +18,6 @@
   "license": "GPL-3.0",
   "build": {
     "appId": "club.cabal.mini",
-    "files": [
-      "**/*",
-      "bundle.js",
-      "bundle.css",
-      {
-        "from": "dist",
-        "to": ".",
-        "filter": [
-          "**/*",
-          "!mac/**/*"
-        ]
-      }
-    ],
     "protocols": [
       {
         "name": "cabal",
@@ -86,7 +69,6 @@
     "tachyons": "^4.11.1"
   },
   "devDependencies": {
-    "bankai": "^9.15.0",
     "cross-env": "^5.2.0",
     "electron": "^4.0.5",
     "electron-builder": "^20.38.5",

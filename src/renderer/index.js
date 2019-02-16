@@ -1,8 +1,6 @@
 var choo = require('choo')
-var css = require('sheetify/transform')
 var { ipcRenderer } = window.require('electron')
-
-css('tachyons')
+var Tachyons = require('tachyons/css/tachyons.min.css')
 
 var cabalPorcelain = function (state, emitter) {
   state.cabalState = {}
