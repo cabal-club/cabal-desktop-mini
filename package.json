@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "electron-webpack dev",
     "compile": "electron-webpack",
-    "dist": "npm run compile && electron-builder",
+    "dist": "npm run compile && electron-builder -mlw",
+    "dist:mac": "npm run dist -m",
     "dist:dir": "npm run dist --dir -c.compression=store -c.mac.identity=null",
     "postinstall": "electron-builder install-app-deps",
     "test": "standard && test-deps"
