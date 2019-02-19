@@ -1,5 +1,6 @@
 var html = require('choo/html')
 var Identicon = require('identicon.js')
+var moment = require('moment')
 const { ipcRenderer } = window.require('electron')
 
 var TITLE = 'Cabal Mini'
@@ -20,8 +21,11 @@ module.exports = function (state, emit) {
 
   var keyShort = state.cabalState.keyAlias || state.cabalState.key.substr(0, 6) || 'CABALS'
   var currentUserName = state.cabalState.currentUser.name || (state.cabalState.currentUser.key && state.cabalState.currentUser.key.substr(0, 6))
+  var previousMessage = {}
 
-  scrollToBottom()
+  setTimeout(function () {
+    scrollToBottom()
+  }, 1000)
 
   return html`
     <body class="sans-serif flex flex-column">
@@ -41,23 +45,23 @@ module.exports = function (state, emit) {
         })}
         <a onclick=${onClickNewChannel} class="hover-dark-pink pointer link gray b f6 f5-ns dib mr3 ttu" title="New Channel">+</a>
       </nav>
-      <article class="pa4 flex-auto" style="overflow: scroll">
+      <article id="messages" class="pa4 flex-auto" style="overflow: scroll">
         ${state.cabalState.messages.map((message) => {
+          var showAvatar = (previousMessage.key !== message.key)
+          previousMessage = message
           var name = keyToUsername(message.key)
           var text = message.value.content.text
-          var identicon = new Identicon(message.key, {
-            saturation: 1,
-            brightness: 0.15,
-            margin: 0,
-            background: [255, 255, 255, 255]
-          }).toString()
+          var timestamp = message.value.timestamp
           return html`
-            <article id="messages" class="dt w-100 b--black-05 pb3 mt2">
+            <article class="dt w-100 b--black-05 pb3 mt2">
               <div class="dtc v-top" style="width: 2.5rem">
-                <img src="data:image/png;base64,${identicon}" class="db br2 w2"/>
+                ${renderAvatar(message, showAvatar)}
               </div>
               <div class="dtc v-mid pl1">
-                <h1 class="f7 fw5 ttu mb1 mt0">${name}</h1>
+                <div class="flex">
+                  ${showAvatar ? html`<h1 class="f7 fw9 ttu mb1 mt0">${name}</h1>` : ''}
+                  <time class="f7 fw9 ttu mb1 mt0 ml2 black-30" style="${!showAvatar ? 'height: 0; opacity: 0' : ''}" title=${moment(timestamp).calendar()} datetime=${moment(timestamp).format()}>${moment(timestamp).format('h:mm A')}</time>
+                </div>
                 <p class="f5 fw5 mt0 mb0 black-70">${text}</p>
               </div>
             </article>
@@ -69,6 +73,18 @@ module.exports = function (state, emit) {
       </div>
     </body>
   `
+
+  function renderAvatar (message, showAvatar) {
+    if (showAvatar) {
+      var identicon = new Identicon(message.key, {
+        saturation: 1,
+        brightness: 0.15,
+        margin: 0,
+        background: [255, 255, 255, 255]
+      }).toString()
+      return html`<img src="data:image/png;base64,${identicon}" class="db br2 w2"/>`
+    }
+  }
 
   function scrollToBottom (force) {
     // if (!force && !this.shouldAutoScroll) return

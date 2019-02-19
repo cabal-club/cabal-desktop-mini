@@ -16,7 +16,7 @@ module.exports = function (state, emit) {
         <label for="key" class="f6 b db mb2">Cabal Key</label>
         <input placeholder="cabal://" id="joinKeyInput" class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text" aria-describedby="key-desc">
         <small id="key-desc" class="f6 black-60 db mb2"></small>
-        <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black" href="#" onclick=${joinCabal}>Join</a>
+        <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black pointer" onclick=${joinCabal}>Join</a>
       </form>
     </body>
   `

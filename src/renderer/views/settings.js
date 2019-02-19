@@ -20,7 +20,7 @@ module.exports = function (state, emit) {
           <label for="name" class="f6 b db mb2">Nickname</label>
           <input value="${currentUserName}" id="nickInput" class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text" aria-describedby="name-desc">
           <small id="name-desc" class="f6 black-60 db mb2"></small>
-          <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black" href="#" onclick=${save}>Save</a>
+          <a class="f6 link dim br3 ph3 pv2 mb1 dib white bg-black pointer" onclick=${save}>Save</a>
       </div>
     </body>
   `

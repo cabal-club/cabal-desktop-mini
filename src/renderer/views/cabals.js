@@ -21,7 +21,7 @@ module.exports = function (state, emit) {
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">
         ${TITLE}
-        <a onclick=${createCabal} href="#" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="Create a new Cabal">NEW</a>
+        <a onclick=${createCabal} class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mh3 ttu" title="Create a new Cabal">NEW</a>
         <a href="/join" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Join a Cabal">JOIN</a>
       </h1>
 
