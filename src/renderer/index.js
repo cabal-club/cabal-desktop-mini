@@ -26,6 +26,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use(cabalPorcelain)
 
 app.route('/', require('./views/cabals'))
+app.route('/cabals', require('./views/cabals'))
 app.route('/join', require('./views/join'))
 app.route('/messenger', require('./views/messenger'))
 app.route('/peers', require('./views/peers'))

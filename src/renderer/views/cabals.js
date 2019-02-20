@@ -17,12 +17,12 @@ module.exports = function (state, emit) {
   return html`
     <body class="sans-serif">
       <nav class="ph4 pt4">
-        <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="/">Cabal</a>
+        <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="./cabals">Cabal</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">
         ${TITLE}
         <a onclick=${createCabal} class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mh3 ttu" title="Create a new Cabal">NEW</a>
-        <a href="/join" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Join a Cabal">JOIN</a>
+        <a href="./join" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Join a Cabal">JOIN</a>
       </h1>
 
       <div class="pa4">
