@@ -10,6 +10,12 @@ module.exports = function (state, emit) {
   state.cabalState = state.cabalState || {}
   state.cabalState.currentUser = state.cabalState.user || { key: '' }
   state.cabalState.users = state.cabalState.users || {}
+
+  var users = Object.values(state.cabalState.users)
+
+  users = users.sort(function (a, b) {
+    return (!!a.online === !!b.online) ? 0 : !!a.online ? -1 : 1
+  })
   // var currentUserName = state.cabalState.currentUser.name || state.cabalState.currentUser.key.substr(0, 6)
 
   return html`
@@ -20,7 +26,7 @@ module.exports = function (state, emit) {
       <h1 class="ph4 f3 f2-m f1-l">${TITLE}</h1>
 
       <div class="pa4">
-        ${Object.values(state.cabalState.users).map((user) => {
+        ${users.map((user) => {
           // var identicon = new Identicon(user.name, {
           //   saturation: 1,
           //   brightness: 0.15,

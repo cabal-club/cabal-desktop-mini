@@ -11,7 +11,8 @@ module.exports = function (state, emit) {
   // }
 
   if (state.title !== TITLE) emit(state.events.DOMTITLECHANGE, TITLE)
-  state.messageHistory = state.messageHistory || []
+  state.sentMessageHistory = state.sentMessageHistory || []
+  state.sentMessageHistoryScrollIndex = state.sentMessageHistoryScrollIndex || 0
   state.cabalState.key = state.cabalState.key || ''
   state.cabalState.channel = state.cabalState.channel || 'default'
   state.cabalState.channels = state.cabalState.channels || []
@@ -102,8 +103,33 @@ module.exports = function (state, emit) {
 
   function onMessageInputKeypress (event) {
     event.preventDefault()
+    // Enter key
     if (event.keyCode === 13) {
       sendMessage({})
+    }
+    // Up arrow key
+    if (event.keyCode === 38) {
+      if (state.sentMessageHistory.length) {
+        state.sentMessageHistoryScrollIndex = state.sentMessageHistoryScrollIndex - 1
+        if (state.sentMessageHistoryScrollIndex >= 0) {
+          document.getElementById('messageInput').value = state.sentMessageHistory[state.sentMessageHistoryScrollIndex]
+        } else {
+          state.sentMessageHistoryScrollIndex = 0
+          document.getElementById('messageInput').value = ''
+        }
+      }
+    }
+    // Down arrow key
+    if (event.keyCode === 40) {
+      if (state.sentMessageHistory.length) {
+        state.sentMessageHistoryScrollIndex = state.sentMessageHistoryScrollIndex + 1
+        if (state.sentMessageHistoryScrollIndex <= state.sentMessageHistory.length - 1) {
+          document.getElementById('messageInput').value = state.sentMessageHistory[state.sentMessageHistoryScrollIndex]
+        } else {
+          state.sentMessageHistoryScrollIndex = state.sentMessageHistory.length
+          document.getElementById('messageInput').value = ''
+        }
+      }
     }
   }
 
@@ -187,8 +213,9 @@ module.exports = function (state, emit) {
   function sendMessage (props) {
     var text = props.text || document.getElementById('messageInput').value
     text = text.trim()
-    state.messageHistory.push(text)
-    if (state.messageHistory.length > 1000) state.messageHistory.shift()
+    state.sentMessageHistory.push(text)
+    if (state.sentMessageHistory.length > 1000) state.sentMessageHistory.shift()
+    state.sentMessageHistoryScrollIndex = state.sentMessageHistory.length
 
     var commandPattern = (/^\/(\w*)\s*(.*)/)
     var match = commandPattern.exec(text)

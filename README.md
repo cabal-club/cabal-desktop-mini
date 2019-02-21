@@ -27,11 +27,11 @@ $ npm start               # start the application
 build for current platform:
 
 ```
-$ npm run dist
+$ npm run build
 ```
 
 build for [multiple platforms](https://www.electron.build/multi-platform-build#docker):
 
 ```
-$ ./bin/build-multi
+$ npm run dist
 ```
