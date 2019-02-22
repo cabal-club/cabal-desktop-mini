@@ -1,7 +1,8 @@
 var html = require('choo/html')
-var Identicon = require('identicon.js')
 var moment = require('moment')
 const { ipcRenderer } = window.require('electron')
+
+var avatar = require('./avatar')
 
 var TITLE = 'Cabal Mini'
 
@@ -31,13 +32,13 @@ module.exports = function (state, emit) {
   return html`
     <body class="sans-serif flex flex-column">
       <nav class="ph4 pt4">
-        <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="./cabals">Cabal</a>
+        <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="#cabals">Cabal</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">
-        <a href="./cabals" class="hover-dark-pink link black" title="Cabal">${TITLE}</a>
-        <a href="./cabals" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="${keyShort}">${keyShort}</a>
-        <a href="./settings" class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mr3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
-        <a href="./peers" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Peers">PEERS</a>
+        <a href="#cabals" class="hover-dark-pink link black" title="Cabal">${TITLE}</a>
+        <a href="#cabals" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="${keyShort}">${keyShort}</a>
+        <a href="#settings" class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mr3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
+        <a href="#peers" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Peers">PEERS</a>
       </h1>
 
       <nav class="ph4 w-100 pv3 bt bb b--black-10">
@@ -56,7 +57,7 @@ module.exports = function (state, emit) {
           return html`
             <article class="dt w-100 b--black-05 pb3 mt2">
               <div class="dtc v-top" style="width: 2.5rem">
-                ${renderAvatar(message, showAvatar)}
+                ${showAvatar ? avatar(message.key) : ''}
               </div>
               <div class="dtc v-mid pl1">
                 <div class="flex">
@@ -74,18 +75,6 @@ module.exports = function (state, emit) {
       </div>
     </body>
   `
-
-  function renderAvatar (message, showAvatar) {
-    if (showAvatar) {
-      var identicon = new Identicon(message.key, {
-        saturation: 1,
-        brightness: 0.15,
-        margin: 0,
-        background: [255, 255, 255, 255]
-      }).toString()
-      return html`<img src="data:image/png;base64,${identicon}" class="db br2 w2"/>`
-    }
-  }
 
   function scrollToBottom (force) {
     // if (!force && !this.shouldAutoScroll) return

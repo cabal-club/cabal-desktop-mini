@@ -11,7 +11,7 @@ function view (state, emit) {
       <h1 class="f-headline pa3 pa4-ns">
         404 - route not found
       </h1>
-      <a href="./cabals" class="link black underline">
+      <a href="#cabals" class="link black underline">
         Back to main
       </a>
     </body>
