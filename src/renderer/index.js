@@ -1,5 +1,6 @@
 var choo = require('choo')
 var { ipcRenderer } = window.require('electron')
+
 var Tachyons = require('tachyons/css/tachyons.min.css')
 var Styles = require('./styles/style.css')
 
@@ -25,13 +26,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 app.use(cabalPorcelain)
 
-app.route('/', require('./views/cabals'))
 app.route('/cabals', require('./views/cabals'))
 app.route('/join', require('./views/join'))
 app.route('/messenger', require('./views/messenger'))
 app.route('/peers', require('./views/peers'))
 app.route('/settings', require('./views/settings'))
-app.route('/*', require('./views/404'))
+app.route('/*', require('./views/index'))
 
 if (!module.parent) app.mount('body')
 else module.exports = app

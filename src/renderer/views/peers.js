@@ -20,7 +20,7 @@ module.exports = function (state, emit) {
   return html`
     <body class="sans-serif">
       <nav class="ph4 pt4">
-        <a class="f6 link br3 ph3 pv2 mb1 dib black dim ba b--black" href="#messenger">⬅</a>
+        <a class="f6 link br3 ph3 pv2 mb1 dib black dim ba b--black" onclick=${() => navigate('/messenger')}>⬅</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">${TITLE}</h1>
 
@@ -43,4 +43,8 @@ module.exports = function (state, emit) {
       </div>
     </body>
   `
+
+  function navigate (location) {
+    emit(state.events.PUSHSTATE, location)
+  }
 }

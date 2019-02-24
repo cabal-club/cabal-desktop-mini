@@ -1,8 +1,10 @@
-var Cabal = require('cabal-core')
+var CabalClassic = require('cabal-core')
+var CabalHyperswarm = require('cabal-core-hyperswarm')
 var collect = require('collect-stream')
 var crypto = require('hypercore-crypto')
 var ram = require('random-access-memory')
-var swarm = require('cabal-core/swarm.js')
+var swarmClassic = require('cabal-core/swarm.js')
+var swarmHyper = require('cabal-core-hyperswarm/swarm.js')
 var os = require('os')
 var fs = require('fs')
 var yaml = require('js-yaml')
@@ -10,6 +12,9 @@ var mkdirp = require('mkdirp')
 
 const MAX_FEEDS = 1000
 const MAX_MESSAGES = 1000
+
+var Cabal = CabalClassic
+var swarm = swarmClassic
 
 var config
 var homedir = os.homedir()
@@ -33,6 +38,12 @@ try {
 } catch (e) {
   console.error(e)
   process.exit(1)
+}
+
+if (config.hyperswarm) {
+  Cabal = CabalHyperswarm
+  swarm = swarmHyper
+  console.log('>>>>>>>>>> CABAL on HYPERSWARM >>>>>>>>>>')
 }
 
 function saveConfig (config) {

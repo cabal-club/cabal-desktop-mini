@@ -9,7 +9,7 @@ module.exports = function (state, emit) {
   return html`
     <body class="sans-serif">
       <nav class="ph4 pt4">
-        <a class="f6 link br3 ph3 pv2 mb1 dib black dim ba b--black" href="#cabals">⬅</a>
+        <a class="f6 link br3 ph3 pv2 mb1 dib black dim ba b--black" onclick=${() => navigate('/cabals')}>⬅</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">${TITLE}</h1>
       <form class="pa4 black-80">
@@ -29,5 +29,9 @@ module.exports = function (state, emit) {
   function loadCabal (key) {
     ipcRenderer.sendSync('cabal-load-cabal', { key })
     window.location.hash = 'messenger'
+  }
+
+  function navigate (location) {
+    emit(state.events.PUSHSTATE, location)
   }
 }

@@ -1,5 +1,6 @@
 var html = require('choo/html')
 var moment = require('moment')
+var Component = require('choo/component')
 const { ipcRenderer } = window.require('electron')
 
 var avatar = require('./avatar')
@@ -7,10 +8,6 @@ var avatar = require('./avatar')
 var TITLE = 'Cabal Mini'
 
 module.exports = function (state, emit) {
-  // if (!state.cabalState.key) {
-  //   document.location = '/cabals'
-  // }
-
   if (state.title !== TITLE) emit(state.events.DOMTITLECHANGE, TITLE)
   state.sentMessageHistory = state.sentMessageHistory || []
   state.sentMessageHistoryScrollIndex = state.sentMessageHistoryScrollIndex || 0
@@ -32,13 +29,13 @@ module.exports = function (state, emit) {
   return html`
     <body class="sans-serif flex flex-column">
       <nav class="ph4 pt4">
-        <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" href="#cabals">Cabal</a>
+        <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" onclick=${() => navigate('/cabals')}>Cabal</a>
       </nav>
       <h1 class="ph4 f3 f2-m f1-l">
-        <a href="#cabals" class="hover-dark-pink link black" title="Cabal">${TITLE}</a>
-        <a href="#cabals" class="hover-dark-pink link black-50 b f6 f5-ns dib mh3 ttu" title="${keyShort}">${keyShort}</a>
-        <a href="#settings" class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mr3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
-        <a href="#peers" class="hover-dark-pink link black-50 b f6 f5-ns dib mr3 ttu" title="Peers">PEERS</a>
+        <a onclick=${() => navigate('/cabals')} class="hover-dark-pink pointer link black" title="Cabal">${TITLE}</a>
+        <a onclick=${() => navigate('/cabals')} class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mh3 ttu" title="${keyShort}">${keyShort}</a>
+        <a onclick=${() => navigate('/settings')} class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mr3 ttu" title="${state.cabalState.currentUser.key}">${currentUserName}</a>
+        <a onclick=${() => navigate('/peers')} class="hover-dark-pink pointer link black-50 b f6 f5-ns dib mr3 ttu" title="Peers">PEERS</a>
       </h1>
 
       <nav class="ph4 w-100 pv3 bt bb b--black-10">
@@ -258,5 +255,9 @@ module.exports = function (state, emit) {
     } else {
       return (key && key.substr(0, 6)) || 'Unknown'
     }
+  }
+
+  function navigate (location) {
+    emit(state.events.PUSHSTATE, location)
   }
 }

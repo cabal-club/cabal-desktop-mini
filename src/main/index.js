@@ -12,6 +12,7 @@ var window
 var windowStyles = {
   width: 640,
   height: 800,
+  frame: true,
   titleBarStyle: 'hidden',
   minWidth: 640,
   minHeight: 480,
