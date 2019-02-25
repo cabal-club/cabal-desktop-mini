@@ -1,5 +1,7 @@
 var html = require('choo/html')
 
+var Icon = require('../images/cabal.png')
+
 var TITLE = 'Cabal Mini'
 
 module.exports = view
@@ -13,7 +15,7 @@ function view (state, emit) {
 
   return html`
     <body class="sans-serif pa4 flex flex-column items-center justify-center">
-      <img src="cabal.png" class="w2 pointer mb5" />
+      <img src=${Icon} class="w2 pointer mb5" />
     </body>
   `
 

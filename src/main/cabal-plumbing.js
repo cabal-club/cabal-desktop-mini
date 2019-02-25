@@ -1,10 +1,10 @@
 var CabalClassic = require('cabal-core')
-var CabalHyperswarm = require('cabal-core-hyperswarm')
+// var CabalHyperswarm = require('cabal-core-hyperswarm')
 var collect = require('collect-stream')
 var crypto = require('hypercore-crypto')
 var ram = require('random-access-memory')
 var swarmClassic = require('cabal-core/swarm.js')
-var swarmHyper = require('cabal-core-hyperswarm/swarm.js')
+// var swarmHyper = require('cabal-core-hyperswarm/swarm.js')
 var os = require('os')
 var fs = require('fs')
 var yaml = require('js-yaml')
@@ -40,11 +40,11 @@ try {
   process.exit(1)
 }
 
-if (config.hyperswarm) {
-  Cabal = CabalHyperswarm
-  swarm = swarmHyper
-  console.log('>>>>>>>>>> CABAL on HYPERSWARM >>>>>>>>>>')
-}
+// if (config.hyperswarm) {
+//   Cabal = CabalHyperswarm
+//   swarm = swarmHyper
+//   console.log('>>>>>>>>>> CABAL on HYPERSWARM >>>>>>>>>>')
+// }
 
 function saveConfig (config) {
   // make sure config is well-formatted (contains all config options)
