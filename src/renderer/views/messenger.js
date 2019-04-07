@@ -51,8 +51,9 @@ module.exports = function (state, emit) {
           var name = keyToUsername(message.key)
           var text = message.value.content.text
           var timestamp = message.value.timestamp
+          var isEmote = message.value.type === 'chat/emote'
           return html`
-            <article class="dt w-100 b--black-05 pb3 mt2">
+            <article class="dt w-100 b--black-05 pb1 ${showAvatar ? 'mt3' : 'mt1'}">
               <div class="dtc v-top" style="width: 2.5rem">
                 ${showAvatar ? avatar(message.key) : ''}
               </div>
@@ -61,7 +62,10 @@ module.exports = function (state, emit) {
                   ${showAvatar ? html`<h1 class="f7 fw9 ttu mb1 mt0">${name}</h1>` : ''}
                   <time class="f7 fw9 ttu mb1 mt0 ml2 black-30" style="${!showAvatar ? 'height: 0; opacity: 0' : ''}" title=${moment(timestamp).calendar()} datetime=${moment(timestamp).format()}>${moment(timestamp).format('h:mm A')}</time>
                 </div>
-                <p class="f5 fw5 mt0 mb0 black-70">${text}</p>
+                <p class="f5 fw5 mt0 mb0 black-70">
+                  ${isEmote ? html`<span class="fw9 ttu">${name}</span>` : ''}
+                  ${text}
+                </p>
               </div>
             </article>
           `

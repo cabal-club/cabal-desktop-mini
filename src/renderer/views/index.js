@@ -13,9 +13,10 @@ function view (state, emit) {
     navigate('/cabals')
   }, 1000)
 
+  //<img src=${Icon} class="w2 pointer mb5" />
   return html`
     <body class="sans-serif pa4 flex flex-column items-center justify-center">
-      <img src=${Icon} class="w2 pointer mb5" />
+
     </body>
   `
 
