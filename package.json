@@ -5,7 +5,7 @@
   "private": true,
   "main": "main.js",
   "scripts": {
-    "start": "electron-webpack dev",
+    "start": "electron-webpack dev --allow-file-access-from-files",
     "compile": "electron-webpack",
     "clean": "rimraf dist",
     "build": "npm run compile && electron-builder",

@@ -27,7 +27,7 @@ module.exports = function (state, emit) {
   }, 1000)
 
   return html`
-    <body class="sans-serif flex flex-column">
+    <body class="sans-serif flex flex-column" ondrop=${onDrop} ondragover=${onDragover}>
       <nav class="ph4 pt4">
         <a style="opacity: 0" class="f6 link br3 ph3 pv2 mb1 dib white bg-black" onclick=${() => navigate('/cabals')}>Cabal</a>
       </nav>
@@ -40,19 +40,20 @@ module.exports = function (state, emit) {
 
       <nav class="ph4 w-100 pv3 bt bb b--black-10">
         ${state.cabalState.channels.map((channel) => {
-          return html`<a class="hover-dark-pink pointer link ${channel === state.cabalState.channel ? 'black' : 'gray'} b f6 f5-ns dib mr3 ttu" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
-        })}
+    return html`<a class="hover-dark-pink pointer link ${channel === state.cabalState.channel ? 'black' : 'gray'} b f6 f5-ns dib mr3 ttu" title="${channel}" onclick=${function () { loadChannel(channel) }}>${channel}</a>`
+  })}
         <a onclick=${onClickNewChannel} class="hover-dark-pink pointer link gray b f6 f5-ns dib mr3 ttu" title="New Channel">+</a>
       </nav>
       <article id="messages" class="pa4 flex-auto" style="overflow: scroll">
         ${state.cabalState.messages.map((message) => {
-          var showAvatar = (previousMessage.key !== message.key)
-          previousMessage = message
-          var name = keyToUsername(message.key)
-          var text = message.value.content.text
-          var timestamp = message.value.timestamp
-          var isEmote = message.value.type === 'chat/emote'
-          return html`
+    var showAvatar = (previousMessage.key !== message.key)
+    previousMessage = message
+    var name = keyToUsername(message.key)
+    var text = message.value.content.text
+    var timestamp = message.value.timestamp
+    var isEmote = message.value.type === 'chat/emote'
+    var isFile = message.value.type === 'chat/file'
+    return html`
             <article class="dt w-100 b--black-05 pb1 ${showAvatar ? 'mt3' : 'mt1'}">
               <div class="dtc v-top" style="width: 2.5rem">
                 ${showAvatar ? avatar(message.key) : ''}
@@ -64,18 +65,39 @@ module.exports = function (state, emit) {
                 </div>
                 <p class="f5 fw5 mt0 mb0 black-70">
                   ${isEmote ? html`<span class="fw9 ttu">${name}</span>` : ''}
-                  ${text}
+                  ${isFile ? renderFile(message) : text}
                 </p>
               </div>
             </article>
           `
-        })}
+  })}
       </article>
       <div class="ph4">
         <input placeholder="Message #${state.cabalState.channel}" id="messageInput" onkeyup=${onMessageInputKeypress} class="input-reset ba b--black-50 bw2 br3 pa2 mb3 db w-100" type="text">
       </div>
     </body>
   `
+
+  function renderFile (message) {
+    if (message.value.content.file.type.includes('image') && message.value.content.file.localPath) {
+      return renderImage(message)
+    } else {
+      return html`<a class="fw9 ttu" href=${'dat://' + message.value.content.file.key + '/' + message.value.content.file.name}>Dat File: ${message.value.content.file.name}</a>`
+    }
+  }
+
+  function renderImage (message) {
+    var fileName = message.value.content.file.name.split('/')[1]
+    return html`
+      <a class="db mw6 black link dim" title=${fileName} href=${'dat://' + message.value.content.file.key + '/' + message.value.content.file.name}>
+        <img class="db ba b--black-10" alt=${fileName} src=${message.value.content.file.localPath} />
+        <dl class="mt2 f6 lh-copy">
+          <dt class="clip">Filename</dt>
+          <dd class="ml0 gray">${fileName}</dd>
+        </dl>
+      </a>
+    `
+  }
 
   function scrollToBottom (force) {
     // if (!force && !this.shouldAutoScroll) return
@@ -89,6 +111,24 @@ module.exports = function (state, emit) {
     var input = document.getElementById('messageInput')
     input.value = '/join '
     input.focus()
+  }
+
+  function onDrop (event) {
+    event.preventDefault()
+    if (event.dataTransfer && event.dataTransfer.files[0]) {
+      var file = event.dataTransfer.files[0]
+      ipcRenderer.sendSync('cabal-publish-file', {
+        name: file.name,
+        path: file.path,
+        size: file.size,
+        type: file.type
+      })
+    }
+  }
+
+  function onDragover (event) {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = 'copy'
   }
 
   function onMessageInputKeypress (event) {

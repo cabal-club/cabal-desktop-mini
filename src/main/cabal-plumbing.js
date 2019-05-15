@@ -10,6 +10,8 @@ var fs = require('fs')
 var yaml = require('js-yaml')
 var mkdirp = require('mkdirp')
 
+var CabalFiles = require('./cabal-files')
+
 const MAX_FEEDS = 1000
 const MAX_MESSAGES = 1000
 
@@ -21,6 +23,7 @@ var homedir = os.homedir()
 var rootdir = homedir + `/.cabal-desktop-mini/v${Cabal.databaseVersion}`
 var rootconfig = `${rootdir}/config.yml`
 var archivesdir = `${rootdir}/archives/`
+var filesdir = `${rootdir}/files/`
 
 // make sure the .cabal/v<databaseVersion> folder exists
 mkdirp.sync(rootdir)
@@ -106,6 +109,14 @@ CabalPlumbing.prototype.addListeners = function (data) {
     {
       type: 'cabal-load-cabal',
       func: (event, arg) => self.loadCabal(arg.key)
+    },
+    {
+      type: 'cabal-publish-file',
+      func: (event, arg) => self.publishFile(arg)
+    },
+    {
+      type: 'cabal-get-file',
+      func: (event, arg) => self.getFile(arg)
     }
   ]
   self.incomingEvents.forEach(function (event) {
@@ -162,6 +173,7 @@ CabalPlumbing.prototype.loadCabal = function (key, temp) {
   self.state.keyAlias = self.getAliasByKey(self.state.key)
   self.cabal = Cabal(storage, self.state.key, { maxFeeds: MAX_FEEDS })
   self.cabal.db.ready(function () {
+    self.cabalFiles = CabalFiles({ storagePath: filesdir + '/' + key + '/' })
     swarm(self.cabal)
 
     self.updateFrontend({ reason: 'cabal db ready' })
@@ -287,6 +299,17 @@ CabalPlumbing.prototype.loadChannel = function (channel) {
       messages.reverse()
       messages.forEach(function (msg) {
         self.state.messages.push(self.formatMessage(msg))
+        // Handle syncing files
+        if (msg.value.type === 'chat/file') {
+          self.fetchFile({
+            datKey: msg.value.content.file.key,
+            fileName: msg.value.content.file.name,
+            userKey: msg.key
+          }, function (data) {
+            msg.value.content.file.localPath = 'file://' + data.localPath
+            self.updateFrontend({ reason: 'fetch file' })
+          })
+        }
       })
 
       self.updateFrontend({ reason: 'new messages' })
@@ -335,11 +358,35 @@ CabalPlumbing.prototype.formatMessage = function (message) {
 CabalPlumbing.prototype.publishMessage = function (arg) {
   this.cabal.publish({
     type: arg.type || 'chat/text',
-    content: {
+    content: arg.content || {
       channel: this.state.channel,
       text: arg.text
     }
   })
+}
+
+CabalPlumbing.prototype.publishFile = function (arg) {
+  var self = this
+  arg.userKey = self.state.user.key
+  self.cabalFiles.publish(arg, function (data) {
+    self.publishMessage({
+      type: 'chat/file',
+      content: {
+        channel: self.state.channel,
+        text: arg.text || 'dat://' + data.datKey + '/' + data.datFileName,
+        file: {
+          key: data.datKey,
+          name: data.datFileName,
+          size: arg.size,
+          type: arg.type
+        }
+      }
+    })
+  })
+}
+
+CabalPlumbing.prototype.fetchFile = function (arg, callback) {
+  this.cabalFiles.fetch(arg, callback)
 }
 
 CabalPlumbing.prototype.getAliasByKey = function (key, dontTruncate) {

@@ -8,17 +8,6 @@ var CabalPlumbing = require('./cabal-plumbing')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 var window
-
-var windowStyles = {
-  width: 640,
-  height: 800,
-  frame: true,
-  titleBarStyle: 'hidden',
-  minWidth: 640,
-  minHeight: 480,
-  nodeIntegration: false
-}
-
 var cabalPlumbing
 
 app.setName('Cabal Mini')
@@ -29,7 +18,18 @@ app.on('second-instance', (event, argv, cwd) => {
 })
 
 app.on('ready', function () {
-  window = new BrowserWindow(windowStyles)
+  window = new BrowserWindow({
+    width: 640,
+    height: 800,
+    frame: true,
+    titleBarStyle: 'hidden',
+    minWidth: 640,
+    minHeight: 480,
+    nodeIntegration: false,
+    webPreferences: {
+      webSecurity: false
+    }
+  })
 
   if (isDevelopment) {
     window.webContents.openDevTools()
