@@ -4,6 +4,7 @@ const { clipboard, ipcRenderer, remote } = window.require('electron')
 var avatar = require('./avatar')
 
 var appVersion = remote.app.getVersion()
+var cabalCoreVersion = '5'
 var TITLE = 'Cabal Mini'
 
 // Get initial state
@@ -52,7 +53,11 @@ module.exports = function (state, emit) {
           `
         })}
       </div>
-      <div class="pa4 f6 hover-dark-pink black-20">version ${appVersion}</div>
+      <div class="pa4 f6 hover-dark-pink black-20">
+        cabal mini version: ${appVersion}
+        <br>
+        cabal-core version: ${cabalCoreVersion}
+      </div>
     </body>
   `
 
