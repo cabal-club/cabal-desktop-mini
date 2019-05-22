@@ -59,7 +59,7 @@ module.exports = function (state, emit) {
               </div>
               <div class="dtc v-mid pl1">
                 <div class="flex">
-                  ${showAvatar ? html`<h1 class="f7 fw9 ttu mb1 mt0">${name}</h1>` : ''}
+                  ${showAvatar ? html`<h1 class="f7 fw9 ttu mb1 mt0" title=${message.key}>${name}</h1>` : ''}
                   <time class="f7 fw9 ttu mb1 mt0 ml2 black-30" style="${!showAvatar ? 'height: 0; opacity: 0' : ''}" title=${moment(timestamp).calendar()} datetime=${moment(timestamp).format()}>${moment(timestamp).format('h:mm A')}</time>
                 </div>
                 <p class="f5 fw5 mt0 mb0 black-70">

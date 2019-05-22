@@ -223,13 +223,13 @@ CabalPlumbing.prototype.loadCabal = function (key, temp) {
               online: true
             }
           }
-          self.updateFrontend({ reason: 'peer added' })
+          self.updateFrontend({ reason: 'peer added: ' + key })
         })
         self.cabal.on('peer-dropped', function (key) {
           Object.keys(self.state.users).forEach(function (k) {
             if (k === key) {
               self.state.users[k].online = false
-              self.updateFrontend({ reason: 'peer dropped' })
+              self.updateFrontend({ reason: 'peer dropped: ' + key })
             }
           })
         })

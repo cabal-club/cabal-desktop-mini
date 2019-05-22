@@ -1,8 +1,9 @@
 var html = require('choo/html')
-const { clipboard, ipcRenderer } = window.require('electron')
+const { clipboard, ipcRenderer, remote } = window.require('electron')
 
 var avatar = require('./avatar')
 
+var appVersion = remote.app.getVersion()
 var TITLE = 'Cabal Mini'
 
 // Get initial state
@@ -51,6 +52,7 @@ module.exports = function (state, emit) {
           `
         })}
       </div>
+      <div class="pa4 f6 hover-dark-pink black-20">version ${appVersion}</div>
     </body>
   `
 
