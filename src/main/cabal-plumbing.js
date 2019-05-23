@@ -262,6 +262,19 @@ CabalPlumbing.prototype.loadCabal = function (key, temp) {
                 self.state.user.online = true
               }
             })
+
+            // TODO: start auto seeding for peers you've allowed, including yourself
+            self.cabalFiles.getDatKeyFromStoragePath(self.state.user.key, function (datKey) {
+              if (datKey) {
+                var dats = []
+                dats.push({
+                  datKey: datKey,
+                  userKey: self.state.user.key
+                })
+                self.cabalFiles.seedAll(dats)
+              }
+            })
+
             self.updateFrontend({ reason: 'get local key' })
           })
         }
@@ -301,11 +314,12 @@ CabalPlumbing.prototype.loadChannel = function (channel) {
         self.state.messages.push(self.formatMessage(msg))
         // Handle syncing files
         if (msg.value.type === 'chat/file') {
-          self.fetchFile({
+          var fetchArgs = {
             datKey: msg.value.content.file.key,
             fileName: msg.value.content.file.name,
             userKey: msg.key
-          }, function (data) {
+          }
+          self.fetchFile(fetchArgs, function (data) {
             msg.value.content.file.localPath = 'file://' + data.localPath
             self.updateFrontend({ reason: 'fetch file' })
           })
@@ -368,21 +382,33 @@ CabalPlumbing.prototype.publishMessage = function (arg) {
 CabalPlumbing.prototype.publishFile = function (arg) {
   var self = this
   arg.userKey = self.state.user.key
-  self.cabalFiles.publish(arg, function (data) {
-    self.publishMessage({
-      type: 'chat/file',
-      content: {
-        channel: self.state.channel,
-        text: arg.text || 'dat://' + data.datKey + '/' + data.datFileName,
-        file: {
-          key: data.datKey,
-          name: data.datFileName,
-          size: arg.size,
-          type: arg.type
+
+  function publish (datKey) {
+    self.state.currentUserFilesDatKey = datKey
+    arg.datKey = datKey
+    self.cabalFiles.publish(arg, function (data) {
+      self.state.currentUserFilesDatKey = data.datKey
+      self.publishMessage({
+        type: 'chat/file',
+        content: {
+          channel: self.state.channel,
+          text: arg.text || 'dat://' + data.datKey + '/' + data.datFileName,
+          file: {
+            key: data.datKey,
+            name: data.datFileName,
+            size: arg.size,
+            type: arg.type
+          }
         }
-      }
+      })
     })
-  })
+  }
+
+  if (self.state.currentUserFilesDatKey) {
+    publish(self.state.currentUserFilesDatKey)
+  } else {
+    self.cabalFiles.getDatKeyFromStoragePath(arg.userKey, publish)
+  }
 }
 
 CabalPlumbing.prototype.fetchFile = function (arg, callback) {
