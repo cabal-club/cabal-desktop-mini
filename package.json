@@ -1,6 +1,6 @@
 {
   "name": "cabal-desktop-mini",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "a minimal Cabal p2p offline-first desktop application",
   "private": true,
   "main": "main.js",
@@ -54,7 +54,7 @@
     }
   },
   "dependencies": {
-    "cabal-core": "^5.0.1",
+    "cabal-core": "^5.1.2",
     "choo": "^6.13.3",
     "choo-devtools": "^2.5.1",
     "collect-stream": "^1.2.1",
