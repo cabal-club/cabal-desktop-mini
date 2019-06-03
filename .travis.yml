@@ -1,0 +1,24 @@
+sudo: false
+language: node_js
+node_js:
+  - '10'
+
+os:
+  - osx
+  - linux
+  - windows
+
+script:
+  - npm rebuild
+  - npm run dist:multi
+
+install:
+  - npm install
+
+deploy:
+  provider: script
+  script: npm run dist:multi
+  on:
+    all_branches: true
+  skip_cleanup: true
+  file_glob: true
