@@ -161,7 +161,7 @@ CabalPlumbing.prototype.loadCabal = function (key, temp) {
   }
   self.state.keyAlias = self.getAliasByKey(self.state.key)
   self.cabal = Cabal(storage, self.state.key, { maxFeeds: MAX_FEEDS })
-  self.cabal.db.ready(function () {
+  self.cabal.ready(function () {
     swarm(self.cabal)
 
     self.updateFrontend({ reason: 'cabal db ready' })
